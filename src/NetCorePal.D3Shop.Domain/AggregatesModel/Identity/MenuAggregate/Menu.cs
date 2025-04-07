@@ -1,5 +1,6 @@
 ﻿using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.RoleAggregate;
 using NetCorePal.Extensions.Domain;
+using NetCorePal.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,138 @@ using System.Threading.Tasks;
 
 namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
 {
+    /// <summary>
+    /// 菜单元数据类，定义了菜单项的显示和交互属性
+    /// </summary>
+    public class MenuMeta
+    {
+        /// <summary>
+        /// 激活状态下的图标
+        /// </summary>
+        public string? ActiveIcon { get; set; }
+        /// <summary>
+        /// 激活状态下的路径
+        /// </summary>
+        public string? ActivePath { get; set; }
+        /// <summary>
+        /// 是否固定标签页
+        /// </summary>
+        public bool? AffixTab { get; set; }
+        /// <summary>
+        /// 固定标签页的顺序
+        /// </summary>
+        public int? AffixTabOrder { get; set; }
+        /// <summary>
+        /// 徽标内容
+        /// </summary>
+        public string? Badge { get; set; }
+        /// <summary>
+        /// 徽标类型
+        /// </summary>
+        public BadgeType? BadgeType { get; set; }
+        /// <summary>
+        /// 徽标颜色变体
+        /// </summary>
+        public BadgeVariant? BadgeVariants { get; set; }
+        /// <summary>
+        /// 是否在菜单中隐藏子项
+        /// </summary>
+        public bool? HideChildrenInMenu { get; set; }
+        /// <summary>
+        /// 是否在面包屑中隐藏
+        /// </summary>
+        public bool? HideInBreadcrumb { get; set; }
+        /// <summary>
+        /// 是否在菜单中隐藏
+        /// </summary>
+        public bool? HideInMenu { get; set; }
+        /// <summary>
+        /// 是否在标签页中隐藏
+        /// </summary>
+        public bool? HideInTab { get; set; }
+        /// <summary>
+        /// 菜单图标
+        /// </summary>
+        public string? Icon { get; set; }
+        /// <summary>
+        /// iframe源地址
+        /// </summary>
+        public string? IframeSrc { get; set; }
+        /// <summary>
+        /// 是否保持页面状态
+        /// </summary>
+        public bool? KeepAlive { get; set; }
+        /// <summary>
+        /// 外部链接地址
+        /// </summary>
+        public string? Link { get; set; }
+        /// <summary>
+        /// 最大打开的标签页数量
+        /// </summary>
+        public int? MaxNumOfOpenTab { get; set; }
+        /// <summary>
+        /// 是否不使用基础布局
+        /// </summary>
+        public bool? NoBasicLayout { get; set; }
+        /// <summary>
+        /// 是否在新窗口打开
+        /// </summary>
+        public bool? OpenInNewWindow { get; set; }
+        /// <summary>
+        /// 排序顺序
+        /// </summary>
+        public int? Order { get; set; }
+        /// <summary>
+        /// 查询参数
+        /// </summary>
+        public Dictionary<string, object>? Query { get; set; }
+        /// <summary>
+        /// 菜单标题
+        /// </summary>
+        public string? Title { get; set; }
+    }
+
+    /// <summary>
+    /// 徽标类型枚举，定义了菜单项上徽标的显示样式
+    /// </summary>
+    public enum BadgeType
+    {
+        /// <summary>
+        /// 点状徽标，显示为一个小圆点
+        /// </summary>
+        Dot,
+        /// <summary>
+        /// 普通徽标，显示为文字或数字
+        /// </summary>
+        Normal
+    }
+
+    /// <summary>
+    /// 徽标颜色枚举，定义了徽标的颜色变体
+    /// </summary>
+    public enum BadgeVariant
+    {
+        /// <summary>
+        /// 默认颜色
+        /// </summary>
+        Default,
+        /// <summary>
+        /// 危险/错误颜色
+        /// </summary>
+        Destructive,
+        /// <summary>
+        /// 主要/强调颜色
+        /// </summary>
+        Primary,
+        /// <summary>
+        /// 成功颜色
+        /// </summary>
+        Success,
+        /// <summary>
+        /// 警告颜色
+        /// </summary>
+        Warning
+    }
 
     public partial record MenuId : IInt64StronglyTypedId;
 
@@ -16,10 +149,190 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
     /// </summary>
     public class Menu : Entity<MenuId>, IAggregateRoot
     {
-        protected Menu()
+        /// <summary>
+        /// 菜单名称
+        /// </summary>
+        public string Name { get; private set; } = string.Empty;
+        /// <summary>
+        /// 菜单路径
+        /// </summary>
+        public string Path { get; private set; } = string.Empty;
+        /// <summary>
+        /// 父菜单ID
+        /// </summary>
+        public MenuId? ParentId { get; private set; }
+        /// <summary>
+        /// 父菜单
+        /// </summary>
+        public Menu? Parent { get; private set; }
+        /// <summary>
+        /// 菜单类型
+        /// </summary>
+        public MenuType Type { get; private set; }
+        /// <summary>
+        /// 权限代码
+        /// </summary>
+        public string? AuthCode { get; private set; }
+        /// <summary>
+        /// 组件路径
+        /// </summary>
+        public string? Component { get; private set; }
+        /// <summary>
+        /// 重定向路径
+        /// </summary>
+        public string? Redirect { get; private set; }
+        /// <summary>
+        /// 排序顺序
+        /// </summary>
+        public int Order { get; private set; }
+        /// <summary>
+        /// 菜单图标
+        /// </summary>
+        public string? Icon { get; private set; }
+        /// <summary>
+        /// 是否可见
+        /// </summary>
+        public bool IsVisible { get; private set; }
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnabled { get; private set; }
+        /// <summary>
+        /// 菜单元数据
+        /// </summary>
+        public MenuMeta? Meta { get; private set; }
+        /// <summary>
+        /// 子菜单列表
+        /// </summary>
+        public IReadOnlyCollection<Menu> Children => _children.AsReadOnly();
+        private readonly List<Menu> _children = new();
+
+        /// <summary>
+        /// 初始化菜单聚合根
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <param name="name">菜单名称</param>
+        /// <param name="path">菜单路径</param>
+        /// <param name="type">菜单类型</param>
+        /// <param name="parentId">父菜单ID</param>
+        /// <param name="authCode">权限代码</param>
+        /// <param name="component">组件路径</param>
+        /// <param name="redirect">重定向路径</param>
+        /// <param name="order">排序顺序</param>
+        /// <param name="icon">菜单图标</param>
+        /// <param name="meta">菜单元数据</param>
+        public Menu(string name, string path, MenuType type, MenuId? parentId = null, string? authCode = null, string? component = null, string? redirect = null, int order = 0, string? icon = null, MenuMeta? meta = null)
         {
+            Name = name;
+            Path = path;
+            Type = type;
+            ParentId = parentId;
+            AuthCode = authCode;
+            Component = component;
+            Redirect = redirect;
+            Order = order;
+            Icon = icon;
+            Meta = meta;
+            IsVisible = true;
+            IsEnabled = true;
         }
 
-        
+        /// <summary>
+        /// 更新菜单信息
+        /// </summary>
+        /// <param name="name">菜单名称</param>
+        /// <param name="path">菜单路径</param>
+        /// <param name="type">菜单类型</param>
+        /// <param name="parentId">父菜单ID</param>
+        /// <param name="authCode">权限代码</param>
+        /// <param name="component">组件路径</param>
+        /// <param name="redirect">重定向路径</param>
+        /// <param name="order">排序顺序</param>
+        /// <param name="icon">菜单图标</param>
+        /// <param name="meta">菜单元数据</param>
+        public void Update(string name, string path, MenuType type, MenuId? parentId = null, string? authCode = null, string? component = null, string? redirect = null, int order = 0, string? icon = null, MenuMeta? meta = null)
+        {
+            Name = name;
+            Path = path;
+            Type = type;
+            ParentId = parentId;
+            AuthCode = authCode;
+            Component = component;
+            Redirect = redirect;
+            Order = order;
+            Icon = icon;
+            Meta = meta;
+        }
+
+        /// <summary>
+        /// 设置菜单可见性
+        /// </summary>
+        /// <param name="isVisible">是否可见</param>
+        public void SetVisibility(bool isVisible)
+        {
+            IsVisible = isVisible;
+        }
+
+        /// <summary>
+        /// 设置菜单启用状态
+        /// </summary>
+        /// <param name="isEnabled">是否启用</param>
+        public void SetEnabled(bool isEnabled)
+        {
+            IsEnabled = isEnabled;
+        }
+
+        /// <summary>
+        /// 添加子菜单
+        /// </summary>
+        /// <param name="child">子菜单</param>
+        public void AddChild(Menu child)
+        {
+            if (child.ParentId != Id)
+            {
+                throw new InvalidOperationException("Child menu's parent ID does not match this menu's ID");
+            }
+            _children.Add(child);
+        }
+
+        /// <summary>
+        /// 移除子菜单
+        /// </summary>
+        /// <param name="childId">子菜单ID</param>
+        public void RemoveChild(MenuId childId)
+        {
+            var child = _children.FirstOrDefault(c => c.Id == childId);
+            if (child != null)
+            {
+                _children.Remove(child);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 菜单类型枚举，定义了系统中不同类型的菜单项
+    /// </summary>
+    public enum MenuType
+    {
+        /// <summary>
+        /// 目录
+        /// </summary>
+        Catalog,
+        /// <summary>
+        /// 菜单
+        /// </summary>
+        Menu,
+        /// <summary>
+        /// 内嵌
+        /// </summary>
+        Embedded,
+        /// <summary>
+        /// 链接
+        /// </summary>
+        Link,
+        /// <summary>
+        /// 按钮
+        /// </summary>
+        Button
     }
 }

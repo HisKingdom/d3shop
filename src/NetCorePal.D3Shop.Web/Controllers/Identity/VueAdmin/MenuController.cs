@@ -1,38 +1,14 @@
-using AntDesign;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate;
+using NetCorePal.D3Shop.Web.Application.Queries;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.Menus;
 using NetCorePal.D3Shop.Admin.Shared.Permission;
 using NetCorePal.D3Shop.Web.Auth;
-using Refit;
 
-namespace PlaygroundApi.Controllers
+namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin
 {
-    /// <summary>
-    /// 菜单类型枚举，定义了系统中不同类型的菜单项
-    /// </summary>
-    public enum MenuType
-    {
-        /// <summary>
-        /// 目录类型，用于组织其他菜单项的容器
-        /// </summary>
-        Catalog,   
-        /// <summary>
-        /// 菜单类型，用于导航到具体功能页面
-        /// </summary>
-        Menu,       
-        /// <summary>
-        /// 内嵌类型，用于在页面中嵌入其他内容
-        /// </summary>
-        Embedded,   
-        /// <summary>
-        /// 链接类型，用于跳转到外部URL
-        /// </summary>
-        Link,     
-        /// <summary>
-        /// 按钮类型，用于触发特定操作
-        /// </summary>
-        Button    
-    }
 
     /// <summary>
     /// 徽标类型枚举，定义了菜单项上徽标的显示样式
@@ -42,11 +18,11 @@ namespace PlaygroundApi.Controllers
         /// <summary>
         /// 点状徽标，显示为一个小圆点
         /// </summary>
-        Dot,    
+        Dot,
         /// <summary>
         /// 普通徽标，显示为文字或数字
         /// </summary>
-        Normal 
+        Normal
     }
 
     /// <summary>
@@ -238,296 +214,415 @@ namespace PlaygroundApi.Controllers
     /// </summary>
     [ApiController]
     [Route("api/system/[controller]")]
-    public class MenuController : ControllerBase
+    [VueAuthorize(PermissionCodes.RoleManagement)]
+    public class MenuController(IMediator _mediator, MenuQuery _menuQuery) : ControllerBase
     {
+       
+        private CancellationToken CancellationToken => HttpContext?.RequestAborted ?? default;
 
-        private static readonly List<SystemMenu> _menuList = new()
-    {
-        new SystemMenu
-        {
-            Id = "1",
-            Name = "系统管理",
-            Path = "/system",
-            AuthCode="SYSTEM_MANAGE",
-            Pid = "0",
-            Type = MenuType.Catalog,
-            Meta = new MenuMeta
-            {
-                Icon = "carbon:settings",
-                Title = "系统管理",
-                Order = 1
-            },
-            Children = new List<SystemMenu>
-            {
-                new SystemMenu
-                {
-                    Id = "1-1",
-                    Name = "用户管理",
-                    Path = "/system/user",
-                    AuthCode="USER_MANAGE",
-                    Pid = "1",
-                    Type = MenuType.Menu,
-                    Component = "system/user/index",
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:user",
-                        Title = "用户管理",
-                        Order = 1
-                    }
-                },
-                new SystemMenu
-                {
-                    Id = "1-2",
-                    Name = "角色管理",
-                    Path = "/system/role",
-                    Pid = "1",
-                    Type = MenuType.Menu,
-                    Component = "system/role/index",
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:user-role",
-                        Title = "角色管理",
-                        Order = 2
-                    }
-                },
-                new SystemMenu
-                {
-                    Id = "1-3",
-                    Name = "菜单管理",
-                    Path = "/system/menu",
-                    Pid = "1",
-                    Type = MenuType.Menu,
-                    Component = "system/menu/index",
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:menu",
-                        Title = "菜单管理",
-                        Order = 3
-                    }
-                }
-            }
-        },
-        new SystemMenu
-        {
-            Id = "2",
-            Name = "工作台",
-            Path = "/dashboard",
-            Pid = "0",
-            Type = MenuType.Menu,
-            Component = "dashboard/index",
-            Meta = new MenuMeta
-            {
-                Icon = "carbon:dashboard",
-                Title = "工作台",
-                Order = 0,
-                AffixTab = true
-            }
-        },
-        new SystemMenu
-        {
-            Id = "3",
-            Name = "外部链接",
-            Path = "/external",
-            Pid = "0",
-            Type = MenuType.Catalog,
-            Meta = new MenuMeta
-            {
-                Icon = "carbon:link",
-                Title = "外部链接",
-                Order = 2
-            },
-            Children = new List<SystemMenu>
-            {
-                new SystemMenu
-                {
-                    Id = "3-1",
-                    Name = "GitHub",
-                    Path = "https://github.com",
-                    Pid = "3",
-                    Type = MenuType.Link,
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:logo-github",
-                        Title = "GitHub",
-                        OpenInNewWindow = true
-                    }
-                },
-                new SystemMenu
-                {
-                    Id = "3-2",
-                    Name = "文档",
-                    Path = "https://docs.example.com",
-                    Pid = "3",
-                    Type = MenuType.Link,
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:document",
-                        Title = "文档",
-                        OpenInNewWindow = true
-                    }
-                }
-            }
-        },
-        new SystemMenu
-        {
-            Id = "4",
-            Name = "功能演示",
-            Path = "/demo",
-            Pid = "0",
-            Type = MenuType.Catalog,
-            Meta = new MenuMeta
-            {
-                Icon = "carbon:apps",
-                Title = "功能演示",
-                Order = 3
-            },
-            Children = new List<SystemMenu>
-            {
-                new SystemMenu
-                {
-                    Id = "4-1",
-                    Name = "表格",
-                    Path = "/demo/table",
-                    Pid = "4",
-                    Type = MenuType.Menu,
-                    Component = "demo/table/index",
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:table",
-                        Title = "表格",
-                        BadgeType = BadgeType.Dot,
-                        BadgeVariants = BadgeVariant.Primary
-                    }
-                },
-                new SystemMenu
-                {
-                    Id = "4-2",
-                    Name = "表单",
-                    Path = "/demo/form",
-                    Pid = "4",
-                    Type = MenuType.Menu,
-                    Component = "demo/form/index",
-                    AuthCode = "System:Dept:Edit",
-                    Meta = new MenuMeta
-                    {
-                        Icon = "carbon:form",
-                        Title = "表单",
-                        BadgeType = BadgeType.Normal,
-                        Badge = "New",
-                        BadgeVariants = BadgeVariant.Success
-                    }
-                }
-            }
-        }
-    };
+       
 
+        /// <summary>
+        /// 获取所有菜单列表
+        /// </summary>
+        /// <returns>菜单列表</returns>
         [HttpGet("list")]
-        public ActionResult<List<SystemMenu>> GetMenuList()
+        public async Task<ActionResult<List<MenuDto>>> GetMenuList()
         {
-            return Ok(new MenuResponse
+            var menus = await _menuQuery.GetAllMenusAsync(CancellationToken);
+            var menuDtos = menus.Select(m => MapToDto(m)).ToList();
+            return Ok(new ApiResponse<List<MenuDto>>
             {
                 Code = 0,
-                Data = _menuList,
+                Data = menuDtos,
                 Message = "success"
             });
         }
 
+        /// <summary>
+        /// 根据ID获取菜单详情
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <returns>菜单详情</returns>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MenuDto>> GetMenu(long id)
+        {
+            var menu = await _menuQuery.GetMenuByIdAsync(new MenuId(id), CancellationToken);
+            if (menu is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ApiResponse<MenuDto>
+            {
+                Code = 0,
+                Data = MapToDto(menu),
+                Message = "success"
+            });
+        }
+
+        /// <summary>
+        /// 创建新菜单
+        /// </summary>
+        /// <param name="request">创建菜单请求</param>
+        /// <returns>创建结果</returns>
         [HttpPost]
-        public ActionResult CreateMenu([FromBody] SystemMenu menu)
+        public async Task<ActionResult<ApiResponse<long>>> CreateMenu([FromBody] CreateMenuRequest request)
         {
-            // 模拟创建菜单
-            menu.Id = Guid.NewGuid().ToString();
-            _menuList.Add(menu);
-            return Ok();
+            try
+            {
+                var menuId = await _mediator.Send(new CreateMenuCommand(
+                    request.Name,
+                    request.Path,
+                    request.Type,
+                    request.ParentId != null ? new MenuId(request.ParentId.Value) : null,
+                    request.AuthCode,
+                    request.Component,
+                    request.Redirect,
+                    request.Order,
+                    request.Icon
+                ), CancellationToken);
+
+                return Ok(new ApiResponse<long>
+                {
+                    Code = 0,
+                    Data = menuId.Id,
+                    Message = "Menu created successfully"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Code = 400,
+                    Message = ex.Message
+                });
+            }
         }
 
+        /// <summary>
+        /// 更新菜单信息
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <param name="request">更新菜单请求</param>
+        /// <returns>更新结果</returns>
         [HttpPut("{id}")]
-        public ActionResult UpdateMenu(string id, [FromBody] SystemMenu menu)
+        public async Task<ActionResult<ApiResponse<object>>> UpdateMenu(long id, [FromBody] UpdateMenuRequest request)
         {
-            // 模拟更新菜单
-            var existingMenu = _menuList.FirstOrDefault(m => m.Id == id);
-            if (existingMenu == null)
-                return NotFound();
+            try
+            {
+                await _mediator.Send(new UpdateMenuCommand(
+                    new MenuId(id),
+                    request.Name,
+                    request.Path,
+                    request.Type,
+                    request.ParentId != null ? new MenuId(request.ParentId.Value) : null,
+                    request.AuthCode,
+                    request.Component,
+                    request.Redirect,
+                    request.Order,
+                    request.Icon
+                ), CancellationToken);
 
-            // 更新属性
-            existingMenu.Name = menu.Name;
-            existingMenu.Path = menu.Path;
-            existingMenu.Pid = menu.Pid;
-            existingMenu.Type = menu.Type;
-            existingMenu.Component = menu.Component;
-            existingMenu.Redirect = menu.Redirect;
-            existingMenu.AuthCode = menu.AuthCode;
-            existingMenu.Meta = menu.Meta;
-
-            return Ok();
+                return Ok(new ApiResponse<object>
+                {
+                    Code = 0,
+                    Message = "Menu updated successfully"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Code = 400,
+                    Message = ex.Message
+                });
+            }
         }
 
+        /// <summary>
+        /// 删除菜单
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <returns>删除结果</returns>
         [HttpDelete("{id}")]
-        public ActionResult DeleteMenu(string id)
+        public async Task<ActionResult<ApiResponse<object>>> DeleteMenu(long id)
         {
-            // 模拟删除菜单
-            var menu = _menuList.FirstOrDefault(m => m.Id == id);
-            if (menu == null)
-                return NotFound();
-
-            _menuList.Remove(menu);
-            return Ok();
-        }
-
-
-        [HttpGet("name-exists")]
-        public ActionResult<ApiResponse<bool>> IsMenuNameExists(
-         [FromQuery] string? name = null,
-         [FromQuery] string? id = null)
-        {
-            // 如果name为空，返回false
-            if (string.IsNullOrEmpty(name))
+            try
             {
-                return Ok(new MenuResponse
+                await _mediator.Send(new DeleteMenuCommand(new MenuId(id)), CancellationToken);
+                return Ok(new ApiResponse<object>
                 {
                     Code = 0,
-                    Data = false,
-                    Message = "success"
+                    Message = "Menu deleted successfully"
                 });
             }
-
-            var exists = _menuList.Any(m =>
-                m.Name == name && (id == null || m.Id != id));
-
-            return Ok(new MenuResponse
+            catch (InvalidOperationException ex)
             {
-                Code = 0,
-                Data = exists,
-                Message = "success"
-            });
+                return BadRequest(new ApiResponse<object>
+                {
+                    Code = 400,
+                    Message = ex.Message
+                });
+            }
         }
 
-        [HttpGet("path-exists")]
-        public ActionResult<ApiResponse<bool>> IsMenuPathExists(
-            [FromQuery] string? path = null,
-            [FromQuery] string? id = null)
+        /// <summary>
+        /// 设置菜单可见性
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <param name="request">可见性设置请求</param>
+        /// <returns>设置结果</returns>
+        [HttpPut("{id}/visibility")]
+        public async Task<ActionResult<ApiResponse<object>>> SetMenuVisibility(long id, [FromBody] SetVisibilityRequest request)
         {
-            // 如果path为空，返回false
-            if (string.IsNullOrEmpty(path))
+            try
             {
-                return Ok(new MenuResponse
+                await _mediator.Send(new SetMenuVisibilityCommand(new MenuId(id), request.IsVisible), CancellationToken);
+                return Ok(new ApiResponse<object>
                 {
                     Code = 0,
-                    Data = false,
-                    Message = "success"
+                    Message = "Menu visibility updated successfully"
                 });
             }
-
-            var exists = _menuList.Any(m =>
-                m.Path == path && (id == null || m.Id != id));
-
-            return Ok(new MenuResponse
+            catch (InvalidOperationException ex)
             {
-                Code = 0,
-                Data = exists,
-                Message = "success"
-            });
+                return BadRequest(new ApiResponse<object>
+                {
+                    Code = 400,
+                    Message = ex.Message
+                });
+            }
         }
+
+        /// <summary>
+        /// 设置菜单启用状态
+        /// </summary>
+        /// <param name="id">菜单ID</param>
+        /// <param name="request">启用状态设置请求</param>
+        /// <returns>设置结果</returns>
+        [HttpPut("{id}/enabled")]
+        public async Task<ActionResult<ApiResponse<object>>> SetMenuEnabled(long id, [FromBody] SetEnabledRequest request)
+        {
+            try
+            {
+                await _mediator.Send(new SetMenuEnabledCommand(new MenuId(id), request.IsEnabled), CancellationToken);
+                return Ok(new ApiResponse<object>
+                {
+                    Code = 0,
+                    Message = "Menu enabled status updated successfully"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Code = 400,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// 将Menu实体转换为MenuDto
+        /// </summary>
+        /// <param name="menu">菜单实体</param>
+        /// <returns>菜单DTO</returns>
+        private static MenuDto MapToDto(Menu menu)
+        {
+            return new MenuDto
+            {
+                Id = menu.Id.ToString(),
+                Pid = menu.ParentId?.ToString(),
+                Name = menu.Name,
+                Path = menu.Path,
+                Component = menu.Component,
+                Redirect = menu.Redirect,
+                Type = (MenuType)menu.Type,
+                Meta = new MenuMeta
+                {
+                    Title = menu.Name,
+                    Icon = menu.Icon,
+                    Order = menu.Order,
+                    HideInMenu = !menu.IsVisible,
+                    HideInTab = !menu.IsEnabled,
+                    KeepAlive = true,
+                    AffixTab = false,
+                    HideInBreadcrumb = false,
+                    HideChildrenInMenu = false,
+                    OpenInNewWindow = false,
+                    NoBasicLayout = false,
+                    MaxNumOfOpenTab = 10
+                }
+            };
+        }
+    }
+
+    /// <summary>
+    /// 菜单数据传输对象
+    /// </summary>
+    public class MenuDto
+    {
+        /// <summary>
+        /// 菜单ID
+        /// </summary>
+        public string Id { get; set; } = string.Empty;
+        /// <summary>
+        /// 父菜单ID
+        /// </summary>
+        public string? Pid { get; set; }
+        /// <summary>
+        /// 菜单名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// 菜单路径
+        /// </summary>
+        public string Path { get; set; } = string.Empty;
+        /// <summary>
+        /// 组件路径
+        /// </summary>
+        public string? Component { get; set; }
+        /// <summary>
+        /// 重定向路径
+        /// </summary>
+        public string? Redirect { get; set; }
+        /// <summary>
+        /// 菜单类型
+        /// </summary>
+        public MenuType Type { get; set; }
+        /// <summary>
+        /// 菜单元数据
+        /// </summary>
+        public MenuMeta Meta { get; set; } = new();
+    }
+
+    /// <summary>
+    /// 创建菜单请求
+    /// </summary>
+    public class CreateMenuRequest
+    {
+        /// <summary>
+        /// 菜单名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// 菜单路径
+        /// </summary>
+        public string Path { get; set; } = string.Empty;
+        /// <summary>
+        /// 父菜单ID
+        /// </summary>
+        public long? ParentId { get; set; }
+        /// <summary>
+        /// 菜单类型
+        /// </summary>
+        public MenuType Type { get; set; }
+        /// <summary>
+        /// 权限代码
+        /// </summary>
+        public string? AuthCode { get; set; }
+        /// <summary>
+        /// 组件路径
+        /// </summary>
+        public string? Component { get; set; }
+        /// <summary>
+        /// 重定向路径
+        /// </summary>
+        public string? Redirect { get; set; }
+        /// <summary>
+        /// 排序顺序
+        /// </summary>
+        public int Order { get; set; }
+        /// <summary>
+        /// 菜单图标
+        /// </summary>
+        public string? Icon { get; set; }
+    }
+
+    /// <summary>
+    /// 更新菜单请求
+    /// </summary>
+    public class UpdateMenuRequest
+    {
+        /// <summary>
+        /// 菜单名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// 菜单路径
+        /// </summary>
+        public string Path { get; set; } = string.Empty;
+        /// <summary>
+        /// 父菜单ID
+        /// </summary>
+        public long? ParentId { get; set; }
+        /// <summary>
+        /// 菜单类型
+        /// </summary>
+        public MenuType Type { get; set; }
+        /// <summary>
+        /// 权限代码
+        /// </summary>
+        public string? AuthCode { get; set; }
+        /// <summary>
+        /// 组件路径
+        /// </summary>
+        public string? Component { get; set; }
+        /// <summary>
+        /// 重定向路径
+        /// </summary>
+        public string? Redirect { get; set; }
+        /// <summary>
+        /// 排序顺序
+        /// </summary>
+        public int Order { get; set; }
+        /// <summary>
+        /// 菜单图标
+        /// </summary>
+        public string? Icon { get; set; }
+    }
+
+    /// <summary>
+    /// 设置可见性请求
+    /// </summary>
+    public class SetVisibilityRequest
+    {
+        /// <summary>
+        /// 是否可见
+        /// </summary>
+        public bool IsVisible { get; set; }
+    }
+
+    /// <summary>
+    /// 设置启用状态请求
+    /// </summary>
+    public class SetEnabledRequest
+    {
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnabled { get; set; }
+    }
+
+    /// <summary>
+    /// API响应类
+    /// </summary>
+    /// <typeparam name="T">响应数据类型</typeparam>
+    public class ApiResponse<T>
+    {
+        /// <summary>
+        /// 响应状态码
+        /// </summary>
+        public int Code { get; set; }
+        /// <summary>
+        /// 响应数据
+        /// </summary>
+        public T? Data { get; set; }
+        /// <summary>
+        /// 响应消息
+        /// </summary>
+        public string Message { get; set; } = string.Empty;
     }
 }
 
