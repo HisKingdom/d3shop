@@ -15,6 +15,13 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.RoleAggregate
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public DateTime CreatedAt { get; init; }
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        public int Status { get; set; }
+
+        public string Remark { get; set; } = string.Empty;
         public virtual ICollection<RolePermission> Permissions { get; init; } = [];
 
         public Role(string name, string description, IEnumerable<RolePermission> permissions)
