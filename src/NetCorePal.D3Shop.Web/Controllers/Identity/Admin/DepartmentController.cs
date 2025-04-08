@@ -29,7 +29,13 @@ public class DepartmentController(
     public async Task<ResponseData<DeptId>> CreateDepartment([FromBody] CreateDepartmentRequest request)
     {
         var departmentId = await mediator.Send(
-            new CreateDepartmentCommand(request.Name, request.Description, request.Users, request.ParentId),
+            new CreateDepartmentCommand(
+                request.Name,
+                request.Remark,
+                request.Users,
+                request.Pid,
+                request.Status
+                ),
             CancellationToken);
 
         return departmentId.AsResponseData();

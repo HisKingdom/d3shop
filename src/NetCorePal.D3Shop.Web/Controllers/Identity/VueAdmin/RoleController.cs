@@ -82,6 +82,6 @@ namespace PlaygroundApi.Controllers
             var roles = await roleQuery.GetVueAllRolesAsync(request, CancellationToken);
             return roles.AsResponseData();
         }
-       
+
     }
 }

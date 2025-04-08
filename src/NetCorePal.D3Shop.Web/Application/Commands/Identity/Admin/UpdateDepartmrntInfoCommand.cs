@@ -32,6 +32,6 @@ public class UpdateDepartmentInfoCommandHandler(DepartmentRepository departmentR
         List<DepartmentUser> departmentUsers = [];
         foreach (var user in request.Users) departmentUsers.Add(new DepartmentUser(user.UserName, user.UserId));
 
-        department.UpdateDepartInfo(request.Name, request.Description, departmentUsers);
+        department.UpdateDepartInfo(request.Name, "001", request.Description, 0, departmentUsers);
     }
 }

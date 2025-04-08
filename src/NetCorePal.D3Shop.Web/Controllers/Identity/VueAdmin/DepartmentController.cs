@@ -1,175 +1,112 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models;
+using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.DepartmentAggregate;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
+using NetCorePal.D3Shop.Web.Application.Queries.Identity.Admin;
+using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests;
+using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Responses;
+using NetCorePal.Extensions.Dto;
+using NetCorePal.Extensions.Primitives;
+using NetCorePal.D3Shop.Web.Auth;
+using NetCorePal.D3Shop.Web.Blazor;
+using NetCorePal.D3Shop.Admin.Shared.Permission;
+using NetCorePal.D3Shop.Admin.Shared.Requests;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.Admin;
 
 namespace PlaygroundApi.Controllers
 {
-    [ApiController]
     [Route("api/system/dept")]
-    public class DepartmentController : ControllerBase
+    [ApiController]
+    [VueAuthorize(PermissionCodes.DepartmentManagement)]
+    public class DepartmentController(IMediator mediator, DepartmentQuery departmentQuery) : ControllerBase
     {
-        private static readonly List<Department> _departments = new List<Department>
+
+
+        [HttpPost]
+        [VueAuthorize(PermissionCodes.DepartmentCreate)]
+        public async Task<ResponseData<DeptId>> CreateDepartment([FromBody] CreateDepartmentRequest request, CancellationToken cancellationToken)
         {
-            new Department
-            {
-                Id = 1,
-                Name = "技术部",
-                Code = "TECH",
-                Description = "技术部门",
-                CreateTime = DateTime.Now,
-                IsActive = true,
-                Children = new List<Department>
-                {
-                    new Department
-                    {
-                        Id = 2,
-                        Name = "前端组",
-                        Code = "FRONTEND",
-                        ParentId = 1,
-                        Description = "前端开发组",
-                        CreateTime = DateTime.Now,
-                        IsActive = true
-                    },
-                    new Department
-                    {
-                        Id = 3,
-                        Name = "后端组",
-                        Code = "BACKEND",
-                        ParentId = 1,
-                        Description = "后端开发组",
-                        CreateTime = DateTime.Now,
-                        IsActive = true
-                    }
-                }
-            },
-            new Department
-            {
-                Id = 4,
-                Name = "产品部",
-                Code = "PROD",
-                Description = "产品部门",
-                CreateTime = DateTime.Now,
-                IsActive = true
-            }
-        };
+            var departmentId = await mediator.Send(new CreateDepartmentCommand(
+                request.Name,
+                request.Remark,
+                request.Users,
+                request.Pid,
+                request.Status
+                ),
+                cancellationToken);
+
+            return new ResponseData<DeptId>(departmentId);
+        }
 
         [HttpGet("list")]
-        public ActionResult<object> GetDepartments()
+        public async Task<ResponseData<List<VueDepartmentResponse>>> GetDepartments(CancellationToken cancellationToken)
         {
-            try
-            {
-                var items = _departments.Select(d => new
-                {
-                    id = d.Id.ToString(),
-                    name = d.Name,
-                    code = d.Code,
-                    parentId = d.ParentId?.ToString(),
-                    status = d.IsActive ? 1 : 0,
-                    remark = d.Description,
-                    createTime = d.CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                    children = d.Children?.Select(c => new
-                    {
-                        id = c.Id.ToString(),
-                        name = c.Name,
-                        code = c.Code,
-                        parentId = c.ParentId?.ToString(),
-                        status = c.IsActive ? 1 : 0,
-                        remark = c.Description,
-                        createTime = c.CreateTime.ToString("yyyy-MM-dd HH:mm:ss")
-                    }).ToList()
-                }).ToList();
-
-                return new JsonResult(new
-                {
-                    code = 0,
-                    data = items,
-                    error = "",
-                    message = "ok"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { code = -1, message = "服务器内部错误", error = ex.Message });
-            }
+            var departments = await departmentQuery.GetAllDepartmentsAsync(cancellationToken);
+            return new ResponseData<List<VueDepartmentResponse>>(departments);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Department> GetDepartment(int id)
+        public async Task<ResponseData<VueDepartmentResponse>> GetDepartment(string id, CancellationToken cancellationToken)
         {
-            var department = _departments.FirstOrDefault(d => d.Id == id);
+            var departments = await departmentQuery.GetAllDepartmentsAsync(cancellationToken);
+            var department = departments.FirstOrDefault(d => d.Id == id);
+
             if (department == null)
             {
-                return NotFound(new { message = "部门不存在" });
+                throw new KnownException("部门不存在", -1);
             }
 
-            return new JsonResult(department);
+            return new ResponseData<VueDepartmentResponse>(department);
         }
 
-        [HttpPost]
-        public ActionResult<Department> CreateDepartment([FromBody] Department department)
-        {
-            department.Id = _departments.Max(d => d.Id) + 1;
-            department.CreateTime = DateTime.Now;
-            department.IsActive = true;
-            department.Children = new List<Department>();
-
-            if (department.ParentId.HasValue)
-            {
-                var parent = _departments.FirstOrDefault(d => d.Id == department.ParentId);
-                if (parent == null)
-                {
-                    return BadRequest(new { message = "父部门不存在" });
-                }
-                // parent.Children.Add(department);
-            }
-            else
-            {
-                _departments.Add(department);
-            }
-
-            return CreatedAtAction(nameof(GetDepartment), new { id = department.Id }, department);
-        }
+      
 
         [HttpPut("{id}")]
-        public IActionResult UpdateDepartment(int id, [FromBody] Department department)
+        public async Task<ResponseData<object>> UpdateDepartment(string id, [FromBody] VueUpdateDepartmentRequest request, CancellationToken cancellationToken)
         {
-            var existingDepartment = _departments.FirstOrDefault(d => d.Id == id);
-            if (existingDepartment == null)
+            if (!long.TryParse(id, out long departmentIdValue))
             {
-                return NotFound(new { message = "部门不存在" });
+                throw new KnownException("无效的部门ID", -1);
             }
 
-            existingDepartment.Name = department.Name;
-            existingDepartment.Code = department.Code;
-            existingDepartment.Description = department.Description;
+            var deptId = new DeptId(departmentIdValue);
 
-            return NoContent();
+            await mediator.Send(new VueUpdateDepartmentCommand(
+                deptId,
+                request.Name,
+                request.Code,
+                request.ParentId,
+                request.Status,
+                request.Remark),
+                cancellationToken);
+
+            return new ResponseData<object>(new object());
+        }
+
+        [HttpPut("{id}/status")]
+        public async Task<ResponseData<DeptId>> UpdateDepartmentStatus(DeptId id, [FromBody] VueUpdateDepartmentStatusRequest request)
+        {
+            var command = new VueUpdateDepartmentStatusCommand(
+                id,
+                request.Status);
+
+            await mediator.Send(command);
+            return id.AsResponseData();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteDepartment(int id)
+        public async Task<ResponseData<object>> DeleteDepartment(string id, CancellationToken cancellationToken)
         {
-            var department = _departments.FirstOrDefault(d => d.Id == id);
-            if (department == null)
+            if (!long.TryParse(id, out long departmentIdValue))
             {
-                return NotFound(new { message = "部门不存在" });
+                throw new KnownException("无效的部门ID", -1);
             }
 
-            if (department.Children?.Any() == true)
-            {
-                return BadRequest(new { message = "该部门下还有子部门，无法删除" });
-            }
+            var deptId = new DeptId(departmentIdValue);
 
-            if (department.ParentId.HasValue)
-            {
-                var parent = _departments.FirstOrDefault(d => d.Id == department.ParentId);
-                //  parent?.Children.Remove(department);
-            }
-            else
-            {
-                _departments.Remove(department);
-            }
+            await mediator.Send(new VueDeleteDepartmentCommand(deptId), cancellationToken);
 
-            return NoContent();
+            return new ResponseData<object>(new object());
         }
     }
 }

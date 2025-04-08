@@ -37,8 +37,8 @@ namespace NetCorePal.D3Shop.Web.Tests.Identity
             var request = new CreateDepartmentRequest
             {
                 Name = "TestDepartment",
-                Description = "test decription",
-                ParentId = new DeptId(0),
+                Remark = "test decription",
+                Pid = new DeptId(0),
                 Users = new List<CreateDepartmentUserInfoDto>
                 {
                     new CreateDepartmentUserInfoDto(new AdminUserId(1),"User1"), // 创建 User1

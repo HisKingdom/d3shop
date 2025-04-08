@@ -24,52 +24,52 @@ namespace PlaygroundApi.Controllers
     {
         private CancellationToken CancellationToken => HttpContext?.RequestAborted ?? default;
 
-        private static readonly List<User> _users = new List<User>
-        {
-            new User
-            {
-                Id = 1,
-                Username = "admin",
-                Password = "123456", // 实际应用中应该使用加密密码
-                RealName = "管理员",
-                Email = "admin@example.com",
-                Phone = "13800138000",
-                DepartmentId = 1,
-                Department = new Department
-                {
-                    Id = 1,
-                    Name = "技术部",
-                    Code = "TECH",
-                    Description = "技术部门"
-                },
-                Roles = new List<VueCreateRoleRequest>
-                {
-                    new VueCreateRoleRequest
-                    {
-                        Id = 1,
-                        Name = "超级管理员",
-                        //Code = "SUPER_ADMIN",
-                        //Description = "系统超级管理员",
-                        //Permissions = new List<NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission>
-                        //{
-                        //    new NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission
-                        //    {
-                        //        Id = 1,
-                        //        Name = "系统管理",
-                        //        Code = "SYSTEM_MANAGE",
-                        //        Type = "Menu",
-                        //        Path = "/system",
-                        //        Component = "Layout",
-                        //        Icon = "setting",
-                        //        Sort = 1
-                        //    }
-                        //}
-                    }
-                },
-                CreateTime = DateTime.Now,
-                IsActive = true
-            }
-        };
+        //private static readonly List<User> _users = new List<User>
+        //{
+        //    new User
+        //    {
+        //        Id = 1,
+        //        Username = "admin",
+        //        Password = "123456", // 实际应用中应该使用加密密码
+        //        RealName = "管理员",
+        //        Email = "admin@example.com",
+        //        Phone = "13800138000",
+        //        DepartmentId = 1,
+        //        Department = new Department
+        //        {
+        //            Id = 1,
+        //            Name = "技术部",
+        //            Code = "TECH",
+        //            Description = "技术部门"
+        //        },
+        //        Roles = new List<VueCreateRoleRequest>
+        //        {
+        //            new VueCreateRoleRequest
+        //            {
+        //                Id = 1,
+        //                Name = "超级管理员",
+        //                //Code = "SUPER_ADMIN",
+        //                //Description = "系统超级管理员",
+        //                //Permissions = new List<NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission>
+        //                //{
+        //                //    new NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission
+        //                //    {
+        //                //        Id = 1,
+        //                //        Name = "系统管理",
+        //                //        Code = "SYSTEM_MANAGE",
+        //                //        Type = "Menu",
+        //                //        Path = "/system",
+        //                //        Component = "Layout",
+        //                //        Icon = "setting",
+        //                //        Sort = 1
+        //                //    }
+        //                //}
+        //            }
+        //        },
+        //        CreateTime = DateTime.Now,
+        //        IsActive = true
+        //    }
+        //};
 
 
         [HttpGet("info")]
