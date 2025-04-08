@@ -25,6 +25,12 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
         /// 菜单路径
         /// </summary>
         public string Path { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        public int Status { get; set; }
+
         /// <summary>
         /// 父菜单ID
         /// </summary>
@@ -78,7 +84,6 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
         /// <summary>
         /// 初始化菜单聚合根
         /// </summary>
-        /// <param name="id">菜单ID</param>
         /// <param name="name">菜单名称</param>
         /// <param name="path">菜单路径</param>
         /// <param name="type">菜单类型</param>
@@ -89,7 +94,7 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
         /// <param name="order">排序顺序</param>
         /// <param name="icon">菜单图标</param>
         /// <param name="meta">菜单元数据</param>
-        public Menu(string name, string path, MenuType type, MenuId? parentId = null, string? authCode = null, string? component = null, string? redirect = null, int order = 0, string? icon = null, MenuMeta? meta = null)
+        public Menu(string name, string path, MenuType type, MenuId? parentId , string authCode , string component , string redirect , int order, string icon , int status,MenuMeta meta )
         {
             Name = name;
             Path = path;
@@ -101,6 +106,7 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
             Order = order;
             Icon = icon;
             Meta = meta;
+            Status = status;
             IsVisible = true;
             IsEnabled = true;
         }
@@ -118,7 +124,7 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
         /// <param name="order">排序顺序</param>
         /// <param name="icon">菜单图标</param>
         /// <param name="meta">菜单元数据</param>
-        public void Update(string name, string path, MenuType type, MenuId? parentId = null, string? authCode = null, string? component = null, string? redirect = null, int order = 0, string? icon = null, MenuMeta? meta = null)
+        public void Update(string name, string path, MenuType type, MenuId? parentId, string authCode, string component, string redirect, int order, string icon, int status, MenuMeta meta)
         {
             Name = name;
             Path = path;
@@ -129,6 +135,7 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate
             Redirect = redirect;
             Order = order;
             Icon = icon;
+            Status = status;
             Meta = meta;
         }
 

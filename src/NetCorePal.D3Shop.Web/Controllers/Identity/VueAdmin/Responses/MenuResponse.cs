@@ -35,6 +35,22 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Responses
         /// 菜单类型
         /// </summary>
         public string Type { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 菜单图标
+        /// </summary>
+        public string? Icon { get; set; }
+
+        /// <summary>
+        /// 权限代码
+        /// </summary>
+        public string? AuthCode { get; set; }
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        public int Status { get; set; }
+
         /// <summary>
         /// 菜单元数据
         /// </summary>

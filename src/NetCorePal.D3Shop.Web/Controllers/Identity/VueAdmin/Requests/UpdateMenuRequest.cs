@@ -26,15 +26,15 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests
         /// <summary>
         /// 权限代码
         /// </summary>
-        public string? AuthCode { get; set; }
+        public string AuthCode { get; set; } = string.Empty;
         /// <summary>
         /// 组件路径
         /// </summary>
-        public string? Component { get; set; }
+        public string Component { get; set; } = string.Empty;
         /// <summary>
         /// 重定向路径
         /// </summary>
-        public string? Redirect { get; set; }
+        public string Redirect { get; set; } = string.Empty;
         /// <summary>
         /// 排序顺序
         /// </summary>
@@ -42,9 +42,14 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests
         /// <summary>
         /// 菜单图标
         /// </summary>
-        public string? Icon { get; set; }
+        public string Icon { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        public int Status { get; set; }
 
 
-        public MenuMeta? Meta { get; set; }
+        public MenuMeta Meta { get; set; } = new MenuMeta();
     }
 }

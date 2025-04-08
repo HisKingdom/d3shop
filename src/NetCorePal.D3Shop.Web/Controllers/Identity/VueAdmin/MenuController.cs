@@ -136,6 +136,7 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin
                     request.Redirect,
                     request.Order,
                     request.Icon,
+                    request.Status,
                     request.Meta
                 ), CancellationToken);
 
@@ -169,6 +170,7 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin
                     request.Redirect,
                     request.Order,
                     request.Icon,
+                    request.Status,
                     request.Meta
                 ), CancellationToken);
 
@@ -253,8 +255,11 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin
                 Name = menu.Name,
                 Path = menu.Path,
                 Component = menu.Component,
+                Icon=menu.Icon,
+                Status=menu.Status,
                 Redirect = menu.Redirect,
                 Type = menu.Type.ToString().ToLower(),
+                AuthCode=menu.AuthCode,
                 Meta = new MenuMeta
                 {
                     Title = menu.Name,

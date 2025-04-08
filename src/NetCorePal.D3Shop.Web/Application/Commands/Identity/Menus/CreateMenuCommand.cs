@@ -13,13 +13,14 @@ public record CreateMenuCommand(
     string Name,
     string Path,
     MenuType Type,
-    MenuId? ParentId = null,
-    string? AuthCode = null,
-    string? Component = null,
-    string? Redirect = null,
-    int Order = 0,
-    string? Icon = null,
-    MenuMeta? Meta = null)
+    MenuId? ParentId,
+    string AuthCode,
+    string Component,
+    string Redirect,
+    int Order,
+    string Icon,
+    int Status,
+    MenuMeta Meta)
     : ICommand<MenuId>;
 
 public class CreateMenuCommandValidator : AbstractValidator<CreateMenuCommand>
@@ -50,6 +51,7 @@ public class CreateMenuCommandHandler(IMenuRepository menuRepository)
             request.Redirect,
             request.Order,
             request.Icon,
+            request.Status,
             request.Meta
         );
         await menuRepository.AddAsync(menu, cancellationToken);

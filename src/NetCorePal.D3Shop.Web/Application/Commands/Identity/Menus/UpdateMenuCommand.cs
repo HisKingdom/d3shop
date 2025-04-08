@@ -12,13 +12,14 @@ public record UpdateMenuCommand(
     string Name,
     string Path,
     MenuType Type,
-    MenuId? ParentId = null,
-    string? AuthCode = null,
-    string? Component = null,
-    string? Redirect = null,
-    int Order = 0,
-    string? Icon = null,
-    MenuMeta? Meta = null)
+    MenuId? ParentId,
+    string AuthCode,
+    string Component,
+    string Redirect,
+    int Order,
+    string Icon,
+    int Status,
+    MenuMeta Meta)
     : ICommand;
 
 public class UpdateMenuCommandValidator : AbstractValidator<UpdateMenuCommand>
@@ -47,7 +48,7 @@ public class UpdateMenuCommandHandler(IMenuRepository menuRepository)
         {
             throw new InvalidOperationException($"菜单不存在，Id={request.Id}");
         }
-        
+
         menu.Update(
             request.Name,
             request.Path,
@@ -57,7 +58,8 @@ public class UpdateMenuCommandHandler(IMenuRepository menuRepository)
             request.Component,
             request.Redirect,
             request.Order,
-            request.Meta?.Icon,//request.Icon,待优化
+            request.Icon,//request.Icon,待优化
+            request.Status,
             request.Meta
         );
     }
