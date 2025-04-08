@@ -20,6 +20,16 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.DepartmentAggregate
         public string Name { get; private set; } = string.Empty;
 
         /// <summary>
+        /// 部门编码
+        /// </summary>
+        public string Code { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsActive { get; private set; }
+
+        /// <summary>
         /// 描述
         /// </summary>
         public string Description { get; private set; } = string.Empty;
