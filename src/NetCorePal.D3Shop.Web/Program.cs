@@ -46,6 +46,7 @@ try
     builder.Services.AddMvc().AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.Converters.Add(new NewtonsoftEntityIdJsonConverter());
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
     });
     builder.Services.AddSignalR();
 
@@ -117,6 +118,7 @@ try
     builder.Services.AddControllers().AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new EntityIdJsonConverterFactory());
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();

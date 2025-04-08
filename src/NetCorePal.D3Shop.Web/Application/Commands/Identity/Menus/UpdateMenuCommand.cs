@@ -47,7 +47,7 @@ public class UpdateMenuCommandHandler(IMenuRepository menuRepository)
         {
             throw new InvalidOperationException($"菜单不存在，Id={request.Id}");
         }
-
+        
         menu.Update(
             request.Name,
             request.Path,
@@ -57,10 +57,8 @@ public class UpdateMenuCommandHandler(IMenuRepository menuRepository)
             request.Component,
             request.Redirect,
             request.Order,
-            request.Icon,
+            request.Meta?.Icon,//request.Icon,待优化
             request.Meta
         );
-
-        await menuRepository.UpdateAsync(menu, cancellationToken);
     }
 }

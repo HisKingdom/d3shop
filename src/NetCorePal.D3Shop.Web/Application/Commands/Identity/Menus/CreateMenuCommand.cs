@@ -44,12 +44,6 @@ public class CreateMenuCommandHandler(IMenuRepository menuRepository)
             request.Name,
             request.Path,
             request.Type,
-            request.ParentId);
-
-        menu.Update(
-            request.Name,
-            request.Path,
-            request.Type,
             request.ParentId,
             request.AuthCode,
             request.Component,
@@ -58,7 +52,6 @@ public class CreateMenuCommandHandler(IMenuRepository menuRepository)
             request.Icon,
             request.Meta
         );
-
         await menuRepository.AddAsync(menu, cancellationToken);
         return menu.Id;
     }
