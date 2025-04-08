@@ -1,3 +1,4 @@
+using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests;
 using System;
 
 namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models
@@ -12,7 +13,7 @@ namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models
         public string Phone { get; set; } = string.Empty;
         public int DepartmentId { get; set; }
         public Department Department { get; set; } = new Department();
-        public List<Role> Roles { get; set; } = new List<Role>();
+        public List<VueCreateRoleRequest> Roles { get; set; } = new List<VueCreateRoleRequest>();
         public DateTime CreateTime { get; set; }
         public bool IsActive { get; set; }
     }

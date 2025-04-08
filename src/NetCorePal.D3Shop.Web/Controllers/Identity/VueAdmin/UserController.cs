@@ -13,6 +13,7 @@ using NetCorePal.D3Shop.Admin.Shared.Requests;
 using NetCorePal.D3Shop.Admin.Shared.Responses;
 using NetCorePal.Extensions.Dto;
 using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Responses;
+using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests;
 
 namespace PlaygroundApi.Controllers
 {
@@ -41,9 +42,9 @@ namespace PlaygroundApi.Controllers
                     Code = "TECH",
                     Description = "技术部门"
                 },
-                Roles = new List<Role>
+                Roles = new List<VueCreateRoleRequest>
                 {
-                    new Role
+                    new VueCreateRoleRequest
                     {
                         Id = 1,
                         Name = "超级管理员",

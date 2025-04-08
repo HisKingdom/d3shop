@@ -4,7 +4,7 @@ using NetCorePal.D3Shop.Infrastructure.Repositories.Identity.Admin;
 using NetCorePal.Extensions.Primitives;
 using NetCorePal.Extensions.Repository;
 
-namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.Menus;
+namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
 
 public record DeleteMenuCommand(MenuId Id) : ICommand;
 

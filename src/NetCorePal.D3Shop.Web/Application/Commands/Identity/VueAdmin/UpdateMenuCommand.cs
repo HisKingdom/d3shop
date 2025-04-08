@@ -5,7 +5,7 @@ using NetCorePal.D3Shop.Web.Application.Queries;
 using NetCorePal.Extensions.Primitives;
 using NetCorePal.Extensions.Repository;
 
-namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.Menus;
+namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
 
 public record UpdateMenuCommand(
     MenuId Id,

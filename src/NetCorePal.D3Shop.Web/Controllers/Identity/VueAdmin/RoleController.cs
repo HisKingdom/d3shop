@@ -3,6 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using NetCorePal.D3Shop.Admin.Shared.Permission;
 using NetCorePal.D3Shop.Admin.Shared.Requests;
 using NetCorePal.D3Shop.Admin.Shared.Responses;
+using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate;
+using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.RoleAggregate;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.Admin;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
+using NetCorePal.D3Shop.Web.Application.Queries;
 using NetCorePal.D3Shop.Web.Application.Queries.Identity.Admin;
 using NetCorePal.D3Shop.Web.Auth;
 using NetCorePal.D3Shop.Web.Blazor;
@@ -10,145 +15,87 @@ using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models;
 using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests;
 using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Responses;
 using NetCorePal.Extensions.Dto;
+using NetCorePal.Extensions.Primitives;
 
 namespace PlaygroundApi.Controllers
 {
     [ApiController]
     [Route("api/system/[controller]")]
-   // [VueAuthorize(PermissionCodes.RoleManagement)]
-    public class RoleController(IMediator mediator, RoleQuery roleQuery) : ControllerBase
+    // [VueAuthorize(PermissionCodes.RoleManagement)]
+    public class RoleController(IMediator mediator, RoleQuery roleQuery, MenuQuery menuQuery) : ControllerBase
     {
 
         private CancellationToken CancellationToken => HttpContext?.RequestAborted ?? CancellationToken.None;
 
-        private static readonly List<Role> _roles = new List<Role>
-        {
-            new Role
-            {
-                Id = 1,
-                Name = "超级管理员",
-                //Code = "SUPER_ADMIN",
-                //Description = "系统超级管理员",
-                CreateTime = DateTime.Now,
-               // IsActive = true,
-                Status = 1,
-                Remark = "系统超级管理员，拥有所有权限",
-                //Permissions = new List<NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission>
-                //{
-                //    new NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission
-                //    {
-                //        Id = 1,
-                //        Name = "系统管理",
-                //        Code = "1",
-                //        Type = "Menu",
-                //        Path = "/system",
-                //        Component = "Layout",
-                //        Icon = "setting",
-                //        Sort = 1
-                //    },
-                //    new NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission
-                //    {
-                //        Id = 2,
-                //        Name = "用户管理",
-                //        Code = "1-1",
-                //        Type = "Menu",
-                //        Path = "/user",
-                //        Component = "UserManagement",
-                //        Icon = "user",
-                //        Sort = 2
-                //    },
-                //}
-            },
-            new Role
-            {
-                Id = 2,
-                Name = "普通用户",
-                //Code = "USER",
-               // Description = "普通用户",
-                CreateTime = DateTime.Now,
-               // IsActive = true,
-                Status = 1,
-                Remark = "普通用户，仅有基本权限",
-                //Permissions = new List<NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission>
-                //{
-                //    new NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Models.Permission
-                //    {
-                //        Id = 2,
-                //        Name = "首页",
-                //        Code = "HOME",
-                //        Type = "Menu",
-                //        Path = "/home",
-                //        Component = "Layout",
-                //        Icon = "home",
-                //        Sort = 0
-                //    }
-                //}
-            }
-        };
 
-        [HttpGet]
-        public ActionResult<List<Role>> GetRoles()
-        {
-            return Ok(_roles);
-        }
 
-        [HttpGet("{id}")]
-        public ActionResult<Role> GetRole(int id)
-        {
-            var role = _roles.FirstOrDefault(r => r.Id == id);
-            if (role == null)
-            {
-                return NotFound(new { message = "角色不存在" });
-            }
-
-            return Ok(role);
-        }
 
         [HttpPost]
-        public ActionResult<Role> CreateRole([FromBody] Role role)
+        public async Task<ResponseData<RoleId>> CreateRole([FromBody] VueCreateRoleRequest request)
         {
-            role.Id = _roles.Max(r => r.Id) + 1;
-            role.CreateTime = DateTime.Now;
-            //  role.IsActive = true;
-            _roles.Add(role);
-            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, role);
+            var menus = await menuQuery.GetAllMenusAsync(CancellationToken);
+
+            var permissions = request.Permissions
+                .Select(item =>
+                {
+                    var menu = menus.FirstOrDefault(m => m.Id == item);
+                    if (menu == null || string.IsNullOrEmpty(menu.AuthCode))
+                    {
+                        throw new KnownException("无效的菜单", -1);
+                    }
+                    return (menu.Id, menu.AuthCode);
+                })
+                .ToList();
+
+            var roleId = await mediator.Send(new VueCreateRoleCommand(request.Name, request.Remark, request.Status, permissions), CancellationToken);
+            return roleId.AsResponseData();
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateRole([FromQuery] int id, [FromBody] Role role)
+        public async Task<ResponseData> UpdateRole([FromRoute] RoleId id, [FromBody] VueUpdateRoleRequest request, CancellationToken cancellationToken)
         {
-            var existingRole = _roles.FirstOrDefault(r => r.Id == id);
-            if (existingRole == null)
-            {
-                return NotFound(new { message = "角色不存在" });
-            }
+            var menus = await menuQuery.GetAllMenusAsync(cancellationToken);
+            var permissions = request.Permissions
+                .Select(item =>
+                {
+                    var menu = menus.FirstOrDefault(m => m.Id == item);
+                    if (menu == null || string.IsNullOrEmpty(menu.AuthCode))
+                    {
+                        throw new KnownException("无效的菜单", -1);
+                    }
+                    return (menu.Id, menu.AuthCode);
+                })
+                .ToList();
 
-            existingRole.Name = role.Name;
-            // existingRole.Code = role.Code;
-            //existingRole.Description = role.Description;
-            existingRole.Permissions = role.Permissions;
+            await mediator.Send(new VueUpdateRoleCommand(
+                id,
+                request.Name,
+                request.Remark,
+                request.Status,
+                permissions),
+                cancellationToken);
 
-            return NoContent();
+            return new ResponseData();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteRole(int id)
-        {
-            var role = _roles.FirstOrDefault(r => r.Id == id);
-            if (role == null)
-            {
-                return NotFound(new { message = "角色不存在" });
-            }
+        //[HttpDelete("{id}")]
+        //public IActionResult DeleteRole(int id)
+        //{
+        //    var role = _roles.FirstOrDefault(r => r.Id == id);
+        //    if (role == null)
+        //    {
+        //        return NotFound(new { message = "角色不存在" });
+        //    }
 
-            _roles.Remove(role);
-            return Ok(new
-            {
-                code = 0,
-                data = "",
-                error = "",
-                message = "ok"
-            });
-        }
+        //    _roles.Remove(role);
+        //    return Ok(new
+        //    {
+        //        code = 0,
+        //        data = "",
+        //        error = "",
+        //        message = "ok"
+        //    });
+        //}
 
 
         [HttpGet("list")]

@@ -7,7 +7,7 @@ using NetCorePal.Extensions.Primitives;
 using NetCorePal.Extensions.Repository;
 using System.ComponentModel.Design;
 
-namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.Menus;
+namespace NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
 
 public record CreateMenuCommand(
     string Name,

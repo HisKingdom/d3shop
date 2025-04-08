@@ -1,16 +1,12 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.MenuAggregate;
 using NetCorePal.D3Shop.Web.Application.Queries;
-using NetCorePal.D3Shop.Web.Application.Commands.Identity.Menus;
-using NetCorePal.D3Shop.Admin.Shared.Permission;
-using NetCorePal.D3Shop.Web.Auth;
 using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Requests;
 using NetCorePal.Extensions.Dto;
 using NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin.Responses;
 using NetCorePal.Extensions.Primitives;
-using NetCorePal.D3Shop.Domain.AggregatesModel.Identity.AdminUserAggregate;
+using NetCorePal.D3Shop.Web.Application.Commands.Identity.VueAdmin;
 
 namespace NetCorePal.D3Shop.Web.Controllers.Identity.VueAdmin
 {

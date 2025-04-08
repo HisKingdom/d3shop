@@ -24,12 +24,13 @@ namespace NetCorePal.D3Shop.Domain.AggregatesModel.Identity.RoleAggregate
         public string Remark { get; set; } = string.Empty;
         public virtual ICollection<RolePermission> Permissions { get; init; } = [];
 
-        public Role(string name, string description, IEnumerable<RolePermission> permissions)
+        public Role(string name, string description, IEnumerable<RolePermission> permissions, int status = 0)
         {
             CreatedAt = DateTime.Now;
             Name = name;
             Description = description;
             Permissions = new List<RolePermission>(permissions);
+            Status = status;
         }
 
         public void UpdateRoleInfo(string name, string description)
