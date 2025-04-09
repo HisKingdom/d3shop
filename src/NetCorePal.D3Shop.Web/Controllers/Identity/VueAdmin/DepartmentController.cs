@@ -12,6 +12,8 @@ using NetCorePal.D3Shop.Web.Blazor;
 using NetCorePal.D3Shop.Admin.Shared.Permission;
 using NetCorePal.D3Shop.Admin.Shared.Requests;
 using NetCorePal.D3Shop.Web.Application.Commands.Identity.Admin;
+using NetCorePal.Extensions.AspNetCore;
+using NetCorePal.D3Shop.Admin.Shared.Responses;
 
 namespace PlaygroundApi.Controllers
 {
@@ -20,11 +22,11 @@ namespace PlaygroundApi.Controllers
     [VueAuthorize(PermissionCodes.DepartmentManagement)]
     public class DepartmentController(IMediator mediator, DepartmentQuery departmentQuery) : ControllerBase
     {
-
+        private CancellationToken CancellationToken => HttpContext?.RequestAborted ?? default;
 
         [HttpPost]
         [VueAuthorize(PermissionCodes.DepartmentCreate)]
-        public async Task<ResponseData<DeptId>> CreateDepartment([FromBody] CreateDepartmentRequest request, CancellationToken cancellationToken)
+        public async Task<ResponseData<DeptId>> CreateDepartment([FromBody] CreateDepartmentRequest request)
         {
             var departmentId = await mediator.Send(new CreateDepartmentCommand(
                 request.Name,
@@ -33,80 +35,67 @@ namespace PlaygroundApi.Controllers
                 request.Pid,
                 request.Status
                 ),
-                cancellationToken);
+                CancellationToken);
 
             return new ResponseData<DeptId>(departmentId);
         }
 
         [HttpGet("list")]
-        public async Task<ResponseData<List<VueDepartmentResponse>>> GetDepartments(CancellationToken cancellationToken)
+        public async Task<ResponseData<List<DepartmentResponse>>> GetDepartments([FromQuery] DepartmentQueryRequest request)
         {
-            var departments = await departmentQuery.GetAllDepartmentsAsync(cancellationToken);
-            return new ResponseData<List<VueDepartmentResponse>>(departments);
+            var departments = await departmentQuery.GetAllDepartmentsAsync(request,CancellationToken);
+            return departments.AsResponseData();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ResponseData<VueDepartmentResponse>> GetDepartment(string id, CancellationToken cancellationToken)
-        {
-            var departments = await departmentQuery.GetAllDepartmentsAsync(cancellationToken);
-            var department = departments.FirstOrDefault(d => d.Id == id);
+        //[HttpGet("{id}")]
+        //public async Task<ResponseData<VueDepartmentResponse>> GetDepartment(string id, )
+        //{
+        //    var departments = await departmentQuery.GetAllDepartmentsAsync(cancellationToken);
+        //    var department = departments.FirstOrDefault(d => d.Id == id);
 
-            if (department == null)
-            {
-                throw new KnownException("部门不存在", -1);
-            }
+        //    if (department == null)
+        //    {
+        //        throw new KnownException("部门不存在", -1);
+        //    }
 
-            return new ResponseData<VueDepartmentResponse>(department);
-        }
+        //    return new ResponseData<VueDepartmentResponse>(department);
+        //}
 
-      
+
 
         [HttpPut("{id}")]
-        public async Task<ResponseData<object>> UpdateDepartment(string id, [FromBody] VueUpdateDepartmentRequest request, CancellationToken cancellationToken)
+        public async Task<ResponseData> UpdateDepartment([FromRoute] DeptId id, [FromBody] UpdateDepartmentInfoRequest request)
         {
-            if (!long.TryParse(id, out long departmentIdValue))
-            {
-                throw new KnownException("无效的部门ID", -1);
-            }
-
-            var deptId = new DeptId(departmentIdValue);
-
-            await mediator.Send(new VueUpdateDepartmentCommand(
-                deptId,
+            await mediator.Send(new UpdateDepartmrntInfoCommand(
+                id,
                 request.Name,
+                request.Remark,
                 request.Code,
                 request.ParentId,
                 request.Status,
-                request.Remark),
-                cancellationToken);
+                request.Users
+               ),
+                CancellationToken);
 
-            return new ResponseData<object>(new object());
+            return new ResponseData();
         }
 
-        [HttpPut("{id}/status")]
-        public async Task<ResponseData<DeptId>> UpdateDepartmentStatus(DeptId id, [FromBody] VueUpdateDepartmentStatusRequest request)
-        {
-            var command = new VueUpdateDepartmentStatusCommand(
-                id,
-                request.Status);
+        //[HttpPut("{id}/status")]
+        //public async Task<ResponseData<DeptId>> UpdateDepartmentStatus(DeptId id, [FromBody] VueUpdateDepartmentStatusRequest request)
+        //{
+        //    var command = new VueUpdateDepartmentStatusCommand(
+        //        id,
+        //        request.Status);
 
-            await mediator.Send(command);
-            return id.AsResponseData();
-        }
+        //    await mediator.Send(command);
+        //    return id.AsResponseData();
+        //}
 
         [HttpDelete("{id}")]
-        public async Task<ResponseData<object>> DeleteDepartment(string id, CancellationToken cancellationToken)
+        public async Task<ResponseData> DeleteDepartment([FromRoute] DeptId id)
         {
-            if (!long.TryParse(id, out long departmentIdValue))
-            {
-                throw new KnownException("无效的部门ID", -1);
-            }
-
-            var deptId = new DeptId(departmentIdValue);
-
-            await mediator.Send(new VueDeleteDepartmentCommand(deptId), cancellationToken);
-
-            return new ResponseData<object>(new object());
+            await mediator.Send(new DeleteDepartmentCommand(id), CancellationToken);
+            return new ResponseData();
         }
     }
 }

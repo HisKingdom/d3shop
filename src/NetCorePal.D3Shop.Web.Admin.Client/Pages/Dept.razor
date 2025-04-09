@@ -1,4 +1,4 @@
-@page "/admin/dept"
+@* @page "/admin/dept"
 @using NetCorePal.D3Shop.Web.Admin.Client.Extensions
 @using NetCorePal.D3Shop.Web.Admin.Client.Components.Identity.Dept
 
@@ -8,17 +8,17 @@
 <Table
     TItem="DepartmentResponse"
     @ref="_table"
-    DataSource="_pagedDepartments.Items"
-    Total="_pagedDepartments.Total"
-    @bind-PageIndex="_departmentQueryRequest.PageIndex"
-    @bind-PageSize="_departmentQueryRequest.PageSize"
+    DataSource="_pagedDepartments"
+    Total="_pagedDepartments.Count()"
+    @bind-PageIndex="_pageIndex"
+    @bind-PageSize="_pagedDepartments.Count()"
     OnChange="Table_OnChange"
     Loading="_loading">
     <PaginationTemplate>
         <Pagination Class="@context.PaginationClass"
-                    Total="context.Total"
-                    PageSize="context.PageSize"
-                    Current="context.PageIndex"
+                    Total="context.Count()"
+                    PageSize="context.Count()"
+                    Current="_pageIndex"
                     ShowSizeChanger
                     OnChange="context.HandlePageChange"/>
     </PaginationTemplate>
@@ -42,7 +42,7 @@
     </TitleTemplate>
     <ColumnDefinitions Context="row">
         <PropertyColumn Title="名称" Property="c => c.Name"/>
-        <PropertyColumn Title="描述" Property="c => c.Description" />
+        <PropertyColumn Title="描述" Property="c => c.Remark" />
         <ActionColumn Title="操作">
             <AuthorizeView>
                 @if (context.CheckPermission(PermissionCodes.DepartmentEdit))
@@ -61,4 +61,4 @@
             </AuthorizeView>
         </ActionColumn>
     </ColumnDefinitions>
-</Table>
+</Table> *@
